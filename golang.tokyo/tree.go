@@ -1,18 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 )
 
-func tree(path string, prefix string) {
-	absolutePath, err := filepath.Abs(path)
-	if err != nil {
-		panic(err)
+func tree(path string, prefix string, currentDepth int, maxDepth int) {
+	if currentDepth == maxDepth {
+		return
 	}
-	file, err := os.Open(absolutePath)
+	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
@@ -35,34 +35,36 @@ func tree(path string, prefix string) {
 		for index, name := range _names {
 			if len(_names) == index+1 {
 				fmt.Printf("%s└── %s\n", prefix, name)
-				tree(path+"/"+name, prefix+"    ")
+				tree(filepath.Join(path, name), prefix+"    ", currentDepth+1, maxDepth)
 			} else {
 				fmt.Printf("%s├── %s\n", prefix, name)
-				tree(path+"/"+name, prefix+"│   ")
+				tree(filepath.Join(path, name), prefix+"│   ", currentDepth+1, maxDepth)
 			}
 		}
 	}
 }
 
 func main() {
-	if len(os.Args) == 1 {
-		fmt.Println("usage: tree path")
-		os.Exit(0)
+	maxDepth := flag.Int("L", -1, "Descend only level directories deep.")
+	flag.Parse()
+	relativePath := ""
+	if flag.NArg() == 0 {
+		relativePath = "."
+	} else if flag.NArg() > 1 {
+		fmt.Println("usage: tree [-L level] [directory]")
+		return
+	} else {
+		relativePath = os.Args[len(os.Args)-1]
 	}
-	relativePath := os.Args[1]
-	absolutePath, err := filepath.Abs(relativePath)
-	if err != nil {
-		panic(err)
-	}
-	fileInfo, err := os.Stat(absolutePath)
+	fileInfo, err := os.Stat(relativePath)
 	if os.IsNotExist(err) == true {
-		panic(err)
+		fmt.Println(err)
 	} else if err != nil {
 		panic(err)
 	} else {
 		if fileInfo.IsDir() == true {
 			fmt.Printf("%s\n", relativePath)
-			tree(os.Args[1], "")
+			tree(relativePath, "", 0, *maxDepth)
 		}
 	}
 }
