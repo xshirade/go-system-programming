@@ -45,26 +45,31 @@ func tree(path string, prefix string, currentDepth int, maxDepth int) {
 }
 
 func main() {
+	help := flag.Bool("help", false, "Print usage and this help message and exit.")
 	maxDepth := flag.Int("L", -1, "Descend only level directories deep.")
 	flag.Parse()
-	relativePath := ""
-	if flag.NArg() == 0 {
-		relativePath = "."
-	} else if flag.NArg() > 1 {
-		fmt.Println("usage: tree [-L level] [directory]")
+	if *help == true {
+		fmt.Println("usage: tree [-L level] [<directory list>]")
+		flag.PrintDefaults()
 		return
-	} else {
-		relativePath = os.Args[len(os.Args)-1]
 	}
-	fileInfo, err := os.Stat(relativePath)
-	if os.IsNotExist(err) == true {
-		fmt.Println(err)
-	} else if err != nil {
-		panic(err)
+	paths := []string{}
+	if flag.NArg() == 0 {
+		paths = append(paths, ".")
 	} else {
-		if fileInfo.IsDir() == true {
-			fmt.Printf("%s\n", relativePath)
-			tree(relativePath, "", 0, *maxDepth)
+		paths = append(paths, flag.Args()...)
+	}
+	for _, path := range paths {
+		fileInfo, err := os.Stat(path)
+		if os.IsNotExist(err) == true {
+			fmt.Printf("%s [error opening dir]\n", path)
+		} else if err != nil {
+			panic(err)
+		} else {
+			if fileInfo.IsDir() == true {
+				fmt.Printf("%s\n", path)
+				tree(path, "", 0, *maxDepth)
+			}
 		}
 	}
 }
