@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 )
 
 func tree(path string, prefix string, currentDepth int, maxDepth int) {
@@ -32,6 +33,7 @@ func tree(path string, prefix string, currentDepth int, maxDepth int) {
 				_names = append(_names, name)
 			}
 		}
+		sort.SliceStable(_names, func(i, j int) bool { return _names[i] < _names[j] })
 		for index, name := range _names {
 			if len(_names) == index+1 {
 				fmt.Printf("%s└── %s\n", prefix, name)
