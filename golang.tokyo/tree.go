@@ -13,12 +13,16 @@ func tree(path string, prefix string, currentDepth int, maxDepth int) {
 	if currentDepth == maxDepth {
 		return
 	}
-	file, err := os.Open(path)
+	fileInfo, err := os.Lstat(path)
 	if err != nil {
 		panic(err)
 	}
-	fileInfo, err := file.Stat()
+	if fileInfo.Mode().IsDir() == false {
+		return
+	}
+	file, err := os.Open(path)
 	if err != nil {
+		fmt.Println(fileInfo.Mode())
 		panic(err)
 	}
 	if fileInfo.IsDir() == true {
