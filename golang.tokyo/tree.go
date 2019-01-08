@@ -25,27 +25,25 @@ func tree(path string, prefix string, currentDepth int, maxDepth int) {
 		fmt.Println(fileInfo.Mode())
 		panic(err)
 	}
-	if fileInfo.IsDir() == true {
-		names, err := file.Readdirnames(0)
-		if err != nil {
-			panic(err)
+	names, err := file.Readdirnames(0)
+	if err != nil {
+		panic(err)
+	}
+	re := regexp.MustCompile(`^\.`)
+	_names := []string{}
+	for _, name := range names {
+		if re.MatchString(name) == false {
+			_names = append(_names, name)
 		}
-		re := regexp.MustCompile(`^\.`)
-		_names := []string{}
-		for _, name := range names {
-			if re.MatchString(name) == false {
-				_names = append(_names, name)
-			}
-		}
-		sort.SliceStable(_names, func(i, j int) bool { return _names[i] < _names[j] })
-		for index, name := range _names {
-			if len(_names) == index+1 {
-				fmt.Printf("%s└── %s\n", prefix, name)
-				tree(filepath.Join(path, name), prefix+"    ", currentDepth+1, maxDepth)
-			} else {
-				fmt.Printf("%s├── %s\n", prefix, name)
-				tree(filepath.Join(path, name), prefix+"│   ", currentDepth+1, maxDepth)
-			}
+	}
+	sort.SliceStable(_names, func(i, j int) bool { return _names[i] < _names[j] })
+	for index, name := range _names {
+		if len(_names) == index+1 {
+			fmt.Printf("%s└── %s\n", prefix, name)
+			tree(filepath.Join(path, name), prefix+"    ", currentDepth+1, maxDepth)
+		} else {
+			fmt.Printf("%s├── %s\n", prefix, name)
+			tree(filepath.Join(path, name), prefix+"│   ", currentDepth+1, maxDepth)
 		}
 	}
 }
